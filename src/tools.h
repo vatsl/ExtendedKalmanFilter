@@ -18,7 +18,7 @@ public:
   /**
    * Wrap the values to [-pi, pi)
    */
-  double wrapMinMax(double x, double min, double max);
+  float wrapMinMax(float x, float min, float max);
 
   /**
   * A helper method to calculate RMSE.

@@ -54,15 +54,19 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   */
 
     // get components of predicted state
-    double px = x_[0];
-    double py = x_[1];
-    double vx = x_[2];
-    double vy = x_[3];
+    float px = x_(0);
+    float py = x_(1);
+    float vx = x_(2);
+    float vy = x_(3);
 
     // get components of radar measurement space
-    double rho = sqrt(px*px + py*py);
-    double phi = (px != 0 ? atan(py/px) : M_PI/2.0);
-    double rho_dot = (rho != 0 ? (px*vx + py*vy)/rho : 0);
+    float rho = sqrt(px*px + py*py);
+    float phi = (px != 0 ? atan(py/px) : M_PI/2.0);
+    float rho_dot = (rho != 0 ? (px*vx + py*vy)/rho : 0);
+
+    // phi should be in [-pi, pi)
+    phi = tools.wrapMinMax(phi, -M_PI, M_PI);
+
 
     // define predicted position and speed
     VectorXd z_pred(3);
@@ -70,7 +74,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
     // measurement update
     VectorXd y = z - z_pred;
-    y(1) = tools.wrapMinMax(y(1), -M_PI, M_PI);            // phi should be in [-pi, pi)
 
     MatrixXd Ht = H_.transpose();
     MatrixXd S = H_ * P_ * Ht + R_;

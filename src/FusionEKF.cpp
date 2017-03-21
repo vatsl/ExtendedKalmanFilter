@@ -64,14 +64,18 @@ FusionEKF::FusionEKF() {
     * Set the process and measurement noises
   */
 
-    // unknown vector state at the beginning
-    VectorXd x_ = VectorXd(4);
+    // noise measurements
+    noise_ax = 9.0;
+    noise_ay = 9.0;
 
     // Will be overwritten by tools.CalculateJacobian()
     Hj_ << 1, 0, 0, 0,
            0, 1, 0, 0,
            0, 0, 1, 0;
 
+    VectorXd x_ = VectorXd(4);
+    x_ << 0, 0, 0, 0;
+    
     ekf_.Init(x_, P_, F_, H_laser_, R_laser_, Q_);
 }
 
@@ -95,13 +99,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       // first measurement
       cout << "EKF: " << endl;
       ekf_.x_ = VectorXd(4);      // Allocated in KalmanFilter constructor
-      ekf_.x_ << 1, 1, 1, 1;
+      ekf_.x_ << 0, 0, 0, 0;
 
       // all variables for position and velocity unknown
-      float px = 0;
-      float py = 0;
-      float vx = 0;
-      float vy = 0;
+      float px = 0.0;
+      float py = 0.0;
+      float vx = 0.0;
+      float vy = 0.0;
 
       if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
@@ -136,7 +140,6 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       ekf_.x_ << px, py, vx, vy;
 
       // done initializing, no need to predict or update
-      previous_timestamp_ = measurement_pack.timestamp_;
       is_initialized_ = true;
       return;
   }
@@ -153,23 +156,25 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    */
 
     // dt - time difference in seconds
-    double dt = (measurement_pack.timestamp_ - previous_timestamp_)/10e6;
-    double dt2 = dt*dt;
-    double dt3 = (dt2*dt)/2.0;
-    double dt4 = (dt3*dt)/4.0;
+    float dt = (measurement_pack.timestamp_ - previous_timestamp_)/1000000.0;
+    previous_timestamp_ = measurement_pack.timestamp_;
+
+    float dt2 = dt*dt;
+    float dt3 = (dt2*dt)/2.0;
+    float dt4 = (dt3*dt)/4.0;
 
     // noise for accelration
-    ax_n = 3;
-    ay_n = 3;
+    noise_ax = 9;
+    noise_ay = 9;
 
     ekf_.F_(0, 2) = dt;
     ekf_.F_(1, 3) = dt;
 
     // new covariance matrix
-    ekf_.Q_ << dt4*ax_n, 0, dt3*ax_n, 0,
-               0, dt4*ay_n, 0, dt3*ay_n,
-               dt3*ax_n, 0, dt2*ax_n, 0,
-               0, dt3*ay_n, 0, dt2*ay_n;
+    ekf_.Q_ << dt4*noise_ax, 0, dt3*noise_ax, 0,
+               0, dt4*noise_ay, 0, dt3*noise_ay,
+               dt3*noise_ax, 0, dt2*noise_ax, 0,
+               0, dt3*noise_ay, 0, dt2*noise_ay;
 
     ekf_.Predict();
 

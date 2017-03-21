@@ -37,7 +37,7 @@ private:
   bool is_initialized_;
 
   // previous timestamp
-  long previous_timestamp_;
+  long long previous_timestamp_;
 
   // tool object used to compute Jacobian and RMSE
   Tools tools;
@@ -47,8 +47,8 @@ private:
   Eigen::MatrixXd Hj_;
 
   // noise variables
-  int ax_n;
-  int ay_n;
+  float noise_ax;
+  float noise_ay;
 };
 
 #endif /* FusionEKF_H_ */

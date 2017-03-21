@@ -59,28 +59,27 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
     float vy = x_state(3);
 
     //pre-compute a set of terms to avoid repeated calculation
-    float c1 = (px*px) + (py*py);
-    float c2 = sqrt(c1);
-    float c3 = (c1*c2);
+    float prod1 = (px*px) + (py*py);
+    float prod2 = sqrt(prod1);
+    float prod3 = (prod1*prod2);
 
     //check division by zero
-    if(fabs(c1) < 0.0001){
+    if(fabs(prod1) < 0.0001){
         cout << "CalculateJacobian () - Error - Division by Zero" << endl;
-        Hj <<  0, 0, 0, 0,
-               0, 0, 0, 0,
-               0, 0, 0, 0,
-               0, 0, 0, 0;
+        Hj << 1, 0, 0, 0,
+              0, 1, 0, 0,
+              0, 0, 1, 0;
         return Hj;
     }
 
     //compute the Jacobian matrix
     // avoid mulitple calcucations
-    long vx_py = vx*py;
-    long vy_px = vy*px;
+    float vx_py = vx*py;
+    float vy_px = vy*px;
 
-    Hj << (px/c2), (py/c2), 0, 0,
-          -(py/c1), (px/c1), 0, 0,
-            py*(vx_py - vy_px)/c3, px*(vy_px - vx_py)/c3, px/c2, py/c2;
+    Hj << (px/prod2), (py/prod2), 0, 0,
+          -(py/prod1), (px/prod1), 0, 0,
+            py*(vx_py - vy_px)/prod3, px*(vy_px - vx_py)/prod3, px/prod2, py/prod2;
 
     return Hj;
 }
@@ -88,7 +87,7 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 /**
  * get values between -pi and pi
  */
-double Tools::wrapMinMax(double x, double min, double max)
+float Tools::wrapMinMax(float x, float min, float max)
 {
     if (x < min){
         x += 2*max;
