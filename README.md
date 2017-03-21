@@ -3,6 +3,11 @@ Self-Driving Car Engineer Nanodegree Program
 
 ---
 
+### Results:
+Sample Dataset 1 RMSE Values: **[0.0651649, 0.0605378, 0.54319, 0.544191]**
+ 
+Sample Dataset 2 RMSE Values: **[0.185496, 0.190302, 0.475764, 0.804469]**
+
 ### Dependencies
 
 * cmake >= 3.5
