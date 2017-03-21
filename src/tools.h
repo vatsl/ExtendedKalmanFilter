@@ -16,6 +16,11 @@ public:
   virtual ~Tools();
 
   /**
+   * Wrap the values to [-pi, pi)
+   */
+  double wrapMinMax(double x, double min, double max);
+
+  /**
   * A helper method to calculate RMSE.
   */
   Eigen::VectorXd CalculateRMSE(const std::vector<Eigen::VectorXd> &estimations, const std::vector<Eigen::VectorXd> &ground_truth);

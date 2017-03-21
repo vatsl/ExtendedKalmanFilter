@@ -66,7 +66,11 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
     //check division by zero
     if(fabs(c1) < 0.0001){
         cout << "CalculateJacobian () - Error - Division by Zero" << endl;
-        throw 1;
+        Hj <<  0, 0, 0, 0,
+               0, 0, 0, 0,
+               0, 0, 0, 0,
+               0, 0, 0, 0;
+        return Hj;
     }
 
     //compute the Jacobian matrix
@@ -75,8 +79,22 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
     long vy_px = vy*px;
 
     Hj << (px/c2), (py/c2), 0, 0,
-            -(py/c1), (px/c1), 0, 0,
+          -(py/c1), (px/c1), 0, 0,
             py*(vx_py - vy_px)/c3, px*(vy_px - vx_py)/c3, px/c2, py/c2;
 
     return Hj;
+}
+
+/**
+ * get values between -pi and pi
+ */
+double Tools::wrapMinMax(double x, double min, double max)
+{
+    if (x < min){
+        x += 2*max;
+    }
+    else if (x > max){
+        x -= 2*max;
+    }
+    return x;
 }

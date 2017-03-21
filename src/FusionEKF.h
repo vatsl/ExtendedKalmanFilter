@@ -47,8 +47,8 @@ private:
   Eigen::MatrixXd Hj_;
 
   // noise variables
-  int ax_n = 5;
-  int ay_n = 5;
+  int ax_n;
+  int ay_n;
 };
 
 #endif /* FusionEKF_H_ */
