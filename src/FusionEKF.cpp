@@ -157,8 +157,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     previous_timestamp_ = measurement_pack.timestamp_;
 
     float dt2 = dt*dt;
-    float dt3 = (dt2*dt)/2.0;
-    float dt4 = (dt3*dt)/4.0;
+    float dt3 = (dt2*dt);
+    float dt4 = (dt3*dt);
+
+    dt3 = dt3/2;
+    dt4 = dt4/4;
 
     // noise for accelration
     noise_ax = 9;
