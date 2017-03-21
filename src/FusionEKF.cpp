@@ -12,30 +12,66 @@ using std::vector;
  * Constructor.
  */
 FusionEKF::FusionEKF() {
-  is_initialized_ = false;
+    is_initialized_ = false;
 
-  previous_timestamp_ = 0.0;
+    previous_timestamp_ = 0.0;
 
-  // initializing matrices
-  R_laser_ = MatrixXd(2, 2);
-  R_radar_ = MatrixXd(3, 3);
-  H_laser_ = MatrixXd(2, 4);
-  Hj_ = MatrixXd(3, 4);
+    // initializing matrices
+    R_laser_ = MatrixXd(2, 2);
+    R_radar_ = MatrixXd(3, 3);
+    H_laser_ = MatrixXd(2, 4);
+    Hj_ = MatrixXd(3, 4);
 
-  //measurement covariance matrix - laser
-  R_laser_ << 0.0225, 0,
+    //measurement covariance matrix - laser
+    R_laser_ << 0.0225, 0,
         0, 0.0225;
 
-  //measurement covariance matrix - radar
-  R_radar_ << 0.09, 0, 0,
+    //measurement covariance matrix - radar
+    R_radar_ << 0.09, 0, 0,
         0, 0.0009, 0,
         0, 0, 0.09;
 
+    // measurement function matrix - laser
+    H_laser_ << 1, 0, 0, 0,
+                0, 1, 0, 0;
+
+    // state covariance matrix P
+    // diagonal elements only
+    // low values for high certainity and high values for low certainity
+    MatrixXd P_ = MatrixXd(4, 4);
+    P_ << 10, 0, 0, 0,
+          0, 10, 0, 0,
+          0, 0, 1000, 0,
+          0, 0, 0, 1000;
+
+    // state transition matrix
+    MatrixXd F_ = MatrixXd(4, 4);
+    //the initial transition matrix F_
+    F_ << 1, 0, 1, 0,
+          0, 1, 0, 1,
+          0, 0, 1, 0,
+          0, 0, 0, 1;
+
+    // new covariance matrix based on noise vector
+    MatrixXd Q_ = MatrixXd(4, 4);
+    Q_ << 1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 10, 0,
+            0, 0, 0, 10;
+
   /**
-  TODO:
-    * Finish initializing the FusionEKF.
+    * Initializing the FusionEKF.
     * Set the process and measurement noises
   */
+
+    // unknown vector state at the beginning
+    VectorXd x_ = VectorXd(4);
+
+    ekf_.Init(x_, P_, F_, H_laser_, R_laser_, Q_);
+
+    // noise for accelration
+    ax_n = 5;
+    ay_n = 5;
 
 
 }
@@ -53,30 +89,53 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
   if (!is_initialized_) {
     /**
-    TODO:
       * Initialize the state ekf_.x_ with the first measurement.
       * Create the covariance matrix.
       * Remember: you'll need to convert radar from polar to cartesian coordinates.
     */
-    // first measurement
-    cout << "EKF: " << endl;
-    ekf_.x_ = VectorXd(4);
-    ekf_.x_ << 1, 1, 1, 1;
+      // first measurement
+      // all variables for position and velocity unknown
+      float px = 0;
+      float py = 0;
+      float vx = 0;
+      float vy = 0;
 
-    if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
+      if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
-      Convert radar from polar to cartesian coordinates and initialize state.
+         Convert radar from polar to cartesian coordinates and initialize state.
       */
-    }
-    else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
-      /**
-      Initialize state.
-      */
-    }
+          float rho = measurement_pack.raw_measurements_[0];
+          float phi = measurement_pack.raw_measurements_[1];
+          float rho_dot = measurement_pack.raw_measurements_[2];
 
-    // done initializing, no need to predict or update
-    is_initialized_ = true;
-    return;
+          px = rho * cos(phi);
+          py = rho * sin(phi);
+          vx = rho_dot * cos(phi);
+          vy = rho_dot * sin(phi);
+
+          if(px == 0 or py == 0){
+              return;
+          }
+      }
+
+      else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
+      /**
+         Initialize state.
+      */
+          px = measurement_pack.raw_measurements_[0];
+          py = measurement_pack.raw_measurements_[1];
+          vx = 0;
+          vy = 0;
+      }
+
+      cout << "EKF: " << endl;
+      //ekf_.x_ = VectorXd(4);
+      ekf_.x_ << px, py, vx, vy;
+
+      // done initializing, no need to predict or update
+      is_initialized_ = true;
+      previous_timestamp_ = measurement_pack.timestamp_;
+      return;
   }
 
   /*****************************************************************************
@@ -84,29 +143,56 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    ****************************************************************************/
 
   /**
-   TODO:
      * Update the state transition matrix F according to the new elapsed time.
       - Time is measured in seconds.
      * Update the process noise covariance matrix.
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
 
-  ekf_.Predict();
+    // time difference in seconds
+    float dt = (measurement_pack.timestamp_ - previous_timestamp_)/1000000.0;
+    float dt2 = dt*dt;
+    float dt3 = (dt2*dt)/2.0;
+    float dt4 = (dt3*dt)/4.0;
+
+    ekf_.F_ << 1, 0, dt, 0,
+               0, 1, 0, dt,
+               0, 0, 1, 0,
+               0, 0, 0, 1;
+
+    // new covariance matrix
+    ekf_.Q_ << dt4*ax_n, 0, dt3*ax_n, 0,
+               0, dt4*ay_n, 0, dt3*ay_n,
+               dt3*ax_n, 0, dt2*ax_n, 0,
+               0, dt3*ay_n, 0, dt2*ay_n;
+
+    ekf_.Predict();
 
   /*****************************************************************************
    *  Update
    ****************************************************************************/
 
   /**
-   TODO:
      * Use the sensor type to perform the update step.
      * Update the state and covariance matrices.
    */
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
-    // Radar updates
+      // Radar updates
+      try {
+          ekf_.R_ = R_radar_;
+          ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
+          ekf_.UpdateEKF(measurement_pack.raw_measurements_);
+      } catch(...){
+          // Ignore if errors - mostly during the Jacobian calculations
+          return;
+      }
+
   } else {
-    // Laser updates
+      // Laser updates
+      ekf_.R_ = R_laser_;
+      ekf_.H_ = H_laser_;
+      ekf_.Update(measurement_pack.raw_measurements_);
   }
 
   // print the output
