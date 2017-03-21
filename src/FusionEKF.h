@@ -6,7 +6,6 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <math.h>
 #include "kalman_filter.h"
 #include "tools.h"
 
@@ -37,7 +36,7 @@ private:
   bool is_initialized_;
 
   // previous timestamp
-  long long previous_timestamp_;
+  long previous_timestamp_;
 
   // tool object used to compute Jacobian and RMSE
   Tools tools;
