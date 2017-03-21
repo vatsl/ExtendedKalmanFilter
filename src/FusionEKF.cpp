@@ -14,7 +14,7 @@ using std::vector;
 FusionEKF::FusionEKF() {
   is_initialized_ = false;
 
-  previous_timestamp_ = 0;
+  previous_timestamp_ = 0.0;
 
   // initializing matrices
   R_laser_ = MatrixXd(2, 2);

@@ -1,8 +1,13 @@
 # silly macOS
 .DS_Store
 
+# IDE files
+.idea/
+ide_profiles/
+
 # build files
 build/
+cmake-build-debug
 
 # editor config
 .vscode/
