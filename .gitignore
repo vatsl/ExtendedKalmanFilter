@@ -11,3 +11,6 @@ cmake-build-debug
 
 # editor config
 .vscode/
+
+# hidden files
+.ipynb_checkpoints/

@@ -83,17 +83,3 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
     return Hj;
 }
-
-/**
- * get values between -pi and pi
- */
-float Tools::wrapMinMax(float x, float min, float max)
-{
-    if (x < min){
-        x += 2*max;
-    }
-    else if (x > max){
-        x -= 2*max;
-    }
-    return x;
-}

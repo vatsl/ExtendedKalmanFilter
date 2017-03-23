@@ -63,9 +63,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     float rho = sqrt(px*px + py*py);
     float phi = (px != 0 ? atan2(py,px) : M_PI/2.0);
     float rho_dot = (rho != 0 ? (px*vx + py*vy)/rho : 0);
-
-    // phi should be in [-pi, pi)
-    phi = tools.wrapMinMax(phi, -M_PI, M_PI);
     
     // define predicted position and speed
     VectorXd z_pred(3);
