@@ -7,11 +7,15 @@
 #include "FusionEKF.h"
 #include "ground_truth_package.h"
 #include "measurement_package.h"
+#include "get_time.h"
 
 using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
+
+typedef long long int64;
+typedef unsigned long long uint64;
 
 void check_arguments(int argc, char* argv[]) {
     string usage_instructions = "Usage instructions: ";
@@ -50,6 +54,8 @@ void check_files(ifstream& in_file, string& in_name,
 }
 
 int main(int argc, char* argv[]) {
+
+    uint64 start_time = GetTimeMs64();
 
     check_arguments(argc, argv);
 
@@ -170,6 +176,10 @@ int main(int argc, char* argv[]) {
     // compute the accuracy (RMSE)
     Tools tools;
     cout << "Accuracy - RMSE:" << endl << tools.CalculateRMSE(estimations, ground_truth) << endl;
+
+    uint64 end_time = GetTimeMs64();
+
+    cout << (end_time - start_time);
 
     // close files
     if (out_file_.is_open()) {
